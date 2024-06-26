@@ -676,7 +676,7 @@ def _partitions(
         )
 
         if partition.gpu_count:
-            writer.write(" Gres=gpu:{}".format(partition.gpu_count))
+            writer.write(" Gres=gpu:{}".format(partition.gpu_count if partition.gpu_device_type == "" else f"{partition.gpu_device_type}:{partition.gpu_count}"))
 
         writer.write("\n")
 
@@ -740,7 +740,9 @@ def _generate_gpu_devices(partition: partitionlib.Partition) -> str:
 
 
 def _generate_gres_conf(partitions: List[partitionlib.Partition], writer: TextIO):
+    logging.info("Generate gres.conf")
     for partition in partitions:
+        logging.info("Partition %s", partition.name)
         if partition.node_list is None:
             raise RuntimeError(
                 "No nodes found for nodearray %s. Please run 'azslurm create_nodes' first!"
@@ -766,11 +768,19 @@ def _generate_gres_conf(partitions: List[partitionlib.Partition], writer: TextIO
 
             if partition.gpu_count:
                 gpu_devices = _generate_gpu_devices(partition)
-                writer.write(
-                    "Nodename={} Name=gpu Count={} File={}".format(
-                        node_list, partition.gpu_count, gpu_devices
+                logging.info(f"Partition {partition.name} / GPU device type: {partition.gpu_device_type}")
+                if partition.gpu_device_type == "":
+                    writer.write(
+                        "Nodename={} Name=gpu Count={} File={}".format(
+                            node_list, partition.gpu_count, gpu_devices
+                        )
                     )
-                )
+                else:
+                    writer.write(
+                        "Nodename={} Name=gpu Type={} Count={} File={}".format(
+                            node_list, partition.gpu_device_type, partition.gpu_count, gpu_devices
+                        )
+                    )
 
             writer.write("\n")
 

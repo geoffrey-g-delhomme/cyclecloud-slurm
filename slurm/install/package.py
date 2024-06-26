@@ -103,7 +103,7 @@ def execute() -> None:
 
 
     for binary in slurm_required_bins:
-            _add(f"{binary}", os.path.abspath(f"{binary}"))
+        _add(f"{binary}", os.path.abspath(f"{binary}"))
 
 
 if __name__ == "__main__":

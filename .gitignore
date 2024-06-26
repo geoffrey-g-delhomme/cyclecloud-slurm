@@ -344,3 +344,4 @@ blobs
 slurm/install/*.zip
 install/docker/sched
 .DS_Store
+slurm/install/AzureCA.pem
