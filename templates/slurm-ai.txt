@@ -169,9 +169,14 @@ Autoscale = $Autoscale
         slurm.is_primary_scheduler = false
 
     [[nodearray login]]
-        InitialCount = $NumberLoginNodes
-        MachineType = $loginMachineType
-        ImageName = $SchedulerImageName
+    InitialCount = $NumberLoginNodes
+    MachineType = $loginMachineType
+    # ImageName = $LoginImageName
+    ImageName = /subscriptions/1583e80d-8b81-4bae-ae0e-e78907d8478e/resourceGroups/resgrp-ia-algo-common/providers/Microsoft.Compute/images/image-ia-algo-common-image-0.1.0
+    # ImageName = /subscriptions/1583e80d-8b81-4bae-ae0e-e78907d8478e/resourceGroups/resgrp-ia-algo-common/providers/Microsoft.Compute/galleries/aialgocommoncomputegallery/images/vm-ia-algo-common-ubuntu-22.04/versions/0.2.0
+    # ImagePlan.Publisher = ia-algo
+    # ImagePlan.Product = 0001-ia-algo-com-ubuntu-server-jammy
+    # ImagePlan.Name = ia-algo-22_04-lts-gen2
 
         [[[cluster-init slurm:login:3.0.7]]]
         [[[configuration]]]
@@ -192,10 +197,29 @@ Autoscale = $Autoscale
         [[[network-interface eth0]]]
         AssociatePublicIpAddress = $ExecuteNodesPublic
 
-    [[nodearray cpu2]]
+    [[node nodearraybasecpu]]
     Extends = nodearraybase
+    Abstract = true
+    ImageName = /subscriptions/1583e80d-8b81-4bae-ae0e-e78907d8478e/resourceGroups/resgrp-ia-algo-common/providers/Microsoft.Compute/images/image-ia-algo-common-image-0.1.0
+    # ImageName = /subscriptions/1583e80d-8b81-4bae-ae0e-e78907d8478e/resourceGroups/resgrp-ia-algo-common/providers/Microsoft.Compute/galleries/aialgocommoncomputegallery/images/vm-ia-algo-common-ubuntu-22.04/versions/0.2.0
+    # ImagePlan.Publisher = ia-algo
+    # ImagePlan.Product = 0001-ia-algo-com-ubuntu-server-jammy
+    # ImagePlan.Name = ia-algo-22_04-lts-gen2
+
+    [[node nodearraybasegpu]]
+    Extends = nodearraybase
+    Abstract = true
+    ImageName = /subscriptions/1583e80d-8b81-4bae-ae0e-e78907d8478e/resourceGroups/resgrp-ia-algo-common/providers/Microsoft.Compute/images/image-ia-algo-common-image-gpu-0.1.0
+    # ImageName = /subscriptions/1583e80d-8b81-4bae-ae0e-e78907d8478e/resourceGroups/resgrp-ia-algo-common/providers/Microsoft.Compute/galleries/aialgocommoncomputegallery/images/vm-ia-algo-common-gpu-ubuntu-22.04/versions/0.2.0
+    # ImagePlan.Publisher = ia-algo
+    # ImagePlan.Product = 0001-ia-algo-com-ubuntu-server-jammy
+    # ImagePlan.Name = ia-algo-gpu-22_04-lts-gen2
+
+    [[nodearray cpu2]]
+    # Extends = nodearraybase
+    Extends = nodearraybasecpu
     MachineType = Standard_F2s_v2
-    ImageName = $cpu_ImageName
+    # ImageName = $cpu_ImageName
     MaxCoreCount = ${cpu2_MaxNodes*2}
     Azure.MaxScalesetSize = $cpu2_MaxNodes
     AdditionalClusterInitSpecs = $cpu_ClusterInitSpecs
@@ -207,16 +231,17 @@ Autoscale = $Autoscale
         slurm.partition = cpu2
 
     [[nodearray cpu16]]
-    Extends = nodearraybase
+    # Extends = nodearraybase
+    Extends = nodearraybasecpu
     MachineType = Standard_F16s_v2
-    ImageName = $cpu_ImageName
+    # ImageName = $cpu_ImageName
     MaxCoreCount = ${cpu16_MaxNodes*16}
     Azure.MaxScalesetSize = $cpu16_MaxNodes
     AdditionalClusterInitSpecs = $cpu_ClusterInitSpecs
     EnableNodeHealthChecks = $EnableNodeHealthChecks
 
         [[[configuration]]]
-        ; slurm.default_partition = true
+        # slurm.default_partition = true
         slurm.hpc = true
         slurm.partition = cpu16
 
@@ -228,9 +253,10 @@ Autoscale = $Autoscale
     # GPU Mem: 16G
     # Cost/hour: 1.20€
     # Cost/month: 874.54€
-    Extends = nodearraybase
+    # Extends = nodearraybase
+    Extends = nodearraybasegpu
     MachineType = Standard_NC16as_T4_v3
-    ImageName = $gpu_ImageName
+    # ImageName = $gpu_ImageName
     MaxCoreCount = ${t4m16x1_MaxNodes*16}
     Azure.MaxScalesetSize = $t4m16x1_MaxNodes
     AdditionalClusterInitSpecs = $gpu_ClusterInitSpecs
@@ -250,9 +276,10 @@ Autoscale = $Autoscale
     # GPU Mem: 16G
     # Cost/hour: 4.33€
     # Cost/month: 3159.44€
-    Extends = nodearraybase
+    # Extends = nodearraybase
+    Extends = nodearraybasegpu
     MachineType = Standard_NC64as_T4_v3
-    ImageName = $gpu_ImageName
+    # ImageName = $gpu_ImageName
     MaxCoreCount = ${t4m16x4_MaxNodes*64}
     Azure.MaxScalesetSize = $t4m16x4_MaxNodes
     AdditionalClusterInitSpecs = $gpu_ClusterInitSpecs
@@ -304,16 +331,16 @@ Order = 10
         Config.Plugin = pico.widget.HtmlTemplateWidget
         Config.Template = '''<p><table>
   <tr>
-    <td><b>partition</b></td>
-    <td><b>VM Type</b></td>
+    <td><b>SLURM<br>Partition</b></td>
+    <td><b>VM<br>Type</b></td>
     <td><b>vCPU</b></td>
-    <td><b>Memory (GiB)</b></td>
+    <td><b>Memory<br>(GiB)</b></td>
     <td><b>GPU</b></td>
-    <td><b>GPU Type</b></td>
-    <td><b>GPU Memory (GiB)</b></td>
-    <td><b>Expected Network Bandwidth (Mbps)</b></td>
-    <td><b>Cost/hour (€)</b></td>
-    <td><b>Cost/month (€)</b></td>
+    <td><b>GPU<br>Type</b></td>
+    <td><b>GPU<br>Memory<br>(GiB)</b></td>
+    <td><b>Expected<br>Network<br>Bandwidth<br>(Mbps)</b></td>
+    <td><b>Cost/hour<br>(€)</b></td>
+    <td><b>Cost/month<br>(€)</b></td>
   </tr>
   <tr>
     <td>cpu2</td>
@@ -796,19 +823,30 @@ Order = 20
         DefaultValue = cycle.image.ubuntu22
         Config.Filter := Package in {"cycle.image.centos7", "cycle.image.ubuntu20", "cycle.image.ubuntu22", "cycle.image.sles15-hpc", "almalinux8"}
 
-        [[[parameter cpu_ImageName]]]
-        Label = CPU Nodes OS
-        ParameterType = Cloud.Image
-        Config.OS = linux
-        DefaultValue = cycle.image.ubuntu22
-        Config.Filter := Package in {"cycle.image.centos7", "cycle.image.ubuntu20", "cycle.image.ubuntu22", "cycle.image.sles15-hpc", "almalinux8"}
+        # [[[parameter LoginImageName]]]
+        # Label = Login OS
+        # ParameterType = Cloud.Image
+        # Config.OS = linux
+        # # DefaultValue = cycle.image.ubuntu22
+        # DefaultValue = ia-algo:0001-ia-algo-com-ubuntu-server-jammy:ia-algo-22_04-lts-gen2:0.2.0
+        # Config.Filter := Package in {"cycle.image.centos7", "cycle.image.ubuntu20", "cycle.image.ubuntu22", "cycle.image.sles15-hpc", "almalinux8"}
 
-        [[[parameter gpu_ImageName]]]
-        Label = GPU Nodes OS
-        ParameterType = Cloud.Image
-        Config.OS = linux
-        DefaultValue = nvidia:nvidia-gpu-optimized-vmi-a10:nvidia_base_a10_vmi_22_08_gen2:22.08.8
-        Config.Filter := Package in {"cycle.image.centos7", "cycle.image.ubuntu20", "cycle.image.ubuntu22", "cycle.image.sles15-hpc", "almalinux8"}
+        # [[[parameter cpu_ImageName]]]
+        # Label = CPU Nodes OS
+        # ParameterType = Cloud.Image
+        # Config.OS = linux
+        # # DefaultValue = cycle.image.ubuntu22
+        # DefaultValue = ia-algo:0001-ia-algo-com-ubuntu-server-jammy:ia-algo-22_04-lts-gen2:0.2.0
+        # Config.Filter := Package in {"cycle.image.centos7", "cycle.image.ubuntu20", "cycle.image.ubuntu22", "cycle.image.sles15-hpc", "almalinux8"}
+
+        # [[[parameter gpu_ImageName]]]
+        # Label = GPU Nodes OS
+        # ParameterType = Cloud.Image
+        # Config.OS = linux
+        # # DefaultValue = nvidia:nvidia-gpu-optimized-vmi-a10:nvidia_base_a10_vmi_22_08_gen2:22.08.8
+        # # DefaultValue = cycle.image.ubuntu22
+        # DefaultValue = ia-algo:0001-ia-algo-com-ubuntu-server-jammy:ia-algo-gpu-22_04-lts-gen2:0.2.0
+        # Config.Filter := Package in {"cycle.image.centos7", "cycle.image.ubuntu20", "cycle.image.ubuntu22", "cycle.image.sles15-hpc", "almalinux8"}
 
         # Cluster Init Specs
 
